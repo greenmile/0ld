@@ -121,6 +121,8 @@ body {
   will-change: transform, opacity, filter;
 }
 
+
+
 /* ── Grain overlay ── */
 #app::after {
   content: '';

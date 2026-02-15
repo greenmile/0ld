@@ -32,24 +32,28 @@ function fitAllText() {
   if (!stage) return
   const available = stage.clientWidth - 48
 
-  // Mnemonic letters — fill ~50% (they're single chars, want them BIG)
+  // Brand "ØLD"
+  const brand = document.getElementById('brand')
+  if (brand) fitText(brand, available * 0.8)
+
+  // Mnemonic letters
   document.querySelectorAll('.mnemonic-letter').forEach((el) => {
     fitText(el, available * 0.5)
   })
 
-  // Mnemonic words — fill ~85%
+  // Mnemonic words
   document.querySelectorAll('.mnemonic-word').forEach((el) => {
     fitText(el, available * 0.85)
   })
 
-  // Hero lines — fill ~92%
-  document.querySelectorAll('.hero-line').forEach((el) => {
-    fitText(el, available * 0.92)
+  // Hero lines — 92% of available space
+  document.querySelectorAll('.hero-line').forEach((line) => {
+    fitText(line, available * 0.92)
   })
 
-  // Keywords — fill ~85%
-  document.querySelectorAll('.keyword').forEach((el) => {
-    fitText(el, available * 0.85)
+  // Keywords — 85% of available space
+  document.querySelectorAll('.keyword').forEach((kw) => {
+    fitText(kw, available * 0.85)
   })
 }
 
