@@ -1,0 +1,160 @@
+:root {
+  --bg: #000000;
+  --fg: #ffffff;
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  width: 100%;
+  height: 100dvh;
+  position: relative;
+  overflow: hidden;
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* generous padding to prevent any edge bleed */
+  padding: 16px;
+}
+
+/* ── Brand: ØLD (horizontal) ── */
+.brand {
+  position: absolute;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(4rem, 22vw, 18rem);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  text-align: center;
+  opacity: 0;
+}
+
+.brand-char {
+  display: inline-block;
+}
+
+/* ── Hero: stacked ZERO / LIMIT / DESIGN ── */
+.hero-text {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  text-align: center;
+  opacity: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  will-change: transform, opacity;
+}
+
+.hero-line {
+  display: block;
+  font-size: clamp(2.2rem, 17vw, 14rem);
+  line-height: 0.88;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.hero-line .char {
+  display: inline-block !important;
+  vertical-align: top;
+}
+
+/* ── Keywords ── */
+.keyword-stage {
+  pointer-events: none;
+}
+
+.keywords {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.keyword {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2rem, 12vw, 11rem);
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 0.88;
+  text-align: center;
+  position: absolute;
+  opacity: 0;
+  will-change: transform, opacity, filter;
+}
+
+/* ── Grain overlay ── */
+#app::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  z-index: 999;
+}
+
+/* ── Mobile (iPhone etc.) ── */
+@media (max-width: 480px) {
+  .stage {
+    padding: 12px;
+  }
+
+  .brand {
+    font-size: clamp(3rem, 22vw, 6rem);
+  }
+
+  .hero-line {
+    font-size: clamp(1.8rem, 14vw, 5rem);
+  }
+
+  .keyword {
+    font-size: clamp(1.8rem, 12vw, 4rem);
+  }
+}
+
+/* ── Small height (landscape phones) ── */
+@media (max-height: 500px) {
+  .hero-line {
+    font-size: clamp(2rem, 10vh, 6rem);
+  }
+
+  .keyword {
+    font-size: clamp(1.5rem, 8vh, 4rem);
+  }
+}
