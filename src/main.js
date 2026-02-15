@@ -1,28 +1,130 @@
 import './style.css'
 import gsap from 'gsap'
 import SplitType from 'split-type'
-import { ensureAudio, startLoop } from './audio.js'
+import { ensureAudio, startLoop, stopLoop } from './audio.js'
 
-// Start background beat on first user interaction
-const startAudio = () => {
-  ensureAudio()
-  startLoop()
-  document.removeEventListener('click', startAudio)
-  document.removeEventListener('keydown', startAudio)
-  document.removeEventListener('touchstart', startAudio)
+// ═══════════════════════════════════════════
+//  fitText — measure, don't guess
+// ═══════════════════════════════════════════
+
+function fitText(el, targetWidth, { min = 16, max = 500 } = {}) {
+  let lo = min
+  let hi = max
+  const prevVis = el.style.visibility
+  el.style.visibility = 'hidden'
+  el.style.position = 'absolute'
+  el.style.whiteSpace = 'nowrap'
+
+  for (let i = 0; i < 20; i++) {
+    const mid = (lo + hi) / 2
+    el.style.fontSize = mid + 'px'
+    if (el.scrollWidth > targetWidth) hi = mid
+    else lo = mid
+  }
+
+  el.style.fontSize = lo + 'px'
+  el.style.visibility = prevVis
+  el.style.position = ''
 }
-document.addEventListener('click', startAudio)
-document.addEventListener('keydown', startAudio)
-document.addEventListener('touchstart', startAudio)
+
+function fitAllText() {
+  const stage = document.querySelector('.stage')
+  if (!stage) return
+  const available = stage.clientWidth - 48
+
+  // Mnemonic letters — fill ~50% (they're single chars, want them BIG)
+  document.querySelectorAll('.mnemonic-letter').forEach((el) => {
+    fitText(el, available * 0.5)
+  })
+
+  // Mnemonic words — fill ~85%
+  document.querySelectorAll('.mnemonic-word').forEach((el) => {
+    fitText(el, available * 0.85)
+  })
+
+  // Hero lines — fill ~92%
+  document.querySelectorAll('.hero-line').forEach((el) => {
+    fitText(el, available * 0.92)
+  })
+
+  // Keywords — fill ~85%
+  document.querySelectorAll('.keyword').forEach((el) => {
+    fitText(el, available * 0.85)
+  })
+}
+
+// ═══════════════════════════════════════════
+//  Audio
+// ═══════════════════════════════════════════
+
+let musicStarted = false
+let musicPlaying = false
+const toggleBtn = document.getElementById('music-toggle')
+
+function toggleMusic() {
+  if (!musicStarted) {
+    ensureAudio()
+    startLoop()
+    musicStarted = true
+    musicPlaying = true
+    toggleBtn.classList.remove('muted')
+    // Remove the other listeners since we've started via button
+    document.removeEventListener('click', firstInteraction)
+    document.removeEventListener('keydown', firstInteraction)
+    document.removeEventListener('touchstart', firstInteraction)
+  } else if (musicPlaying) {
+    stopLoop()
+    musicPlaying = false
+    toggleBtn.classList.add('muted')
+  } else {
+    startLoop()
+    musicPlaying = true
+    toggleBtn.classList.remove('muted')
+  }
+}
+
+toggleBtn.addEventListener('click', toggleMusic)
+
+// Also allow starting via any click (existing behavior)
+const firstInteraction = () => {
+  if (!musicStarted) {
+    ensureAudio()
+    startLoop()
+    musicStarted = true
+    musicPlaying = true
+    toggleBtn.classList.remove('muted')
+  }
+  document.removeEventListener('click', firstInteraction)
+  document.removeEventListener('keydown', firstInteraction)
+  document.removeEventListener('touchstart', firstInteraction)
+}
+document.addEventListener('click', firstInteraction)
+document.addEventListener('keydown', firstInteraction)
+document.addEventListener('touchstart', firstInteraction)
+
+// ═══════════════════════════════════════════
+//  Animation
+// ═══════════════════════════════════════════
 
 document.fonts.ready.then(() => {
-  const brandEl = document.getElementById('brand')
-  const brandChars = brandEl.querySelectorAll('.brand-char')
   const heroEl = document.getElementById('hero')
   const heroLines = heroEl.querySelectorAll('.hero-line')
   const keywordEls = document.querySelectorAll('.keyword')
 
-  if (!brandEl || !heroEl || !keywordEls.length) return
+  // Mnemonic elements
+  const mnemonics = [
+    document.getElementById('mnemonic-0'),
+    document.getElementById('mnemonic-l'),
+    document.getElementById('mnemonic-d'),
+  ]
+  const letters = mnemonics.map((m) => m.querySelector('.mnemonic-letter'))
+  const words = mnemonics.map((m) => m.querySelector('.mnemonic-word'))
+
+  if (!heroEl) return
+
+  // Fit text to viewport
+  fitAllText()
+  window.addEventListener('resize', fitAllText)
 
   // Split hero lines into chars
   const splits = Array.from(heroLines).map(
@@ -31,8 +133,9 @@ document.fonts.ready.then(() => {
   const allHeroChars = splits.flatMap((s) => s.chars)
 
   // ── Initial state ──
-  gsap.set(brandEl, { opacity: 1 })
-  gsap.set(brandChars, { opacity: 0, scale: 0.8 })
+  mnemonics.forEach((m) => gsap.set(m, { opacity: 1 }))
+  letters.forEach((l) => gsap.set(l, { opacity: 0, scale: 0.6 }))
+  words.forEach((w) => gsap.set(w, { opacity: 0, scale: 0.9, filter: 'blur(10px)' }))
   gsap.set(heroEl, { opacity: 1 })
   gsap.set(allHeroChars, { opacity: 0, y: 50 })
   gsap.set(keywordEls, { opacity: 0, scale: 0.85, filter: 'blur(14px)' })
@@ -40,54 +143,49 @@ document.fonts.ready.then(() => {
   // ── Master timeline ──
   const tl = gsap.timeline({ repeat: -1, defaults: { ease: 'power3.out' } })
 
-  // ▸ Phase 1: Reveal "ØLD"
-  tl.to(brandChars, {
-    opacity: 1,
-    scale: 1,
-    duration: 0.8,
-    stagger: 0.12,
-    ease: 'back.out(1.5)',
+  // ▸ PHASE 1: Mnemonic drill — 0 → ZERO, L → LIMIT, D → DESIGN
+  const wordLabels = ['ZERO', 'LIMIT', 'DESIGN']
+  mnemonics.forEach((m, i) => {
+    const letter = letters[i]
+    const word = words[i]
+
+    // Show the single letter, big and bold
+    tl.to(letter, {
+      opacity: 1, scale: 1,
+      duration: 0.6, ease: 'back.out(2)',
+    })
+
+    // Hold the letter
+    tl.to({}, { duration: 0.8 })
+
+    // Cross-fade: letter shrinks out, word reveals
+    tl.to(letter, {
+      opacity: 0, scale: 1.3, filter: 'blur(6px)',
+      duration: 0.4, ease: 'power2.in',
+    })
+    tl.to(word, {
+      opacity: 1, scale: 1, filter: 'blur(0px)',
+      duration: 0.6, ease: 'expo.out',
+    }, '-=0.2')
+
+    // Hold the word
+    tl.to({}, { duration: 1 })
+
+    // Fade out the word
+    tl.to(word, {
+      opacity: 0, scale: 0.95, filter: 'blur(8px)',
+      duration: 0.4, ease: 'power2.in',
+    })
+
+    // Reset this mnemonic for next loop
+    if (i < mnemonics.length - 1) {
+      tl.to({}, { duration: 0.3 })
+    }
   })
 
-  // Hold
-  tl.to({}, { duration: 2 })
+  tl.to({}, { duration: 0.5 })
 
-  // ▸ Phase 2: ØLD → ZERO / LIMIT / DESIGN
-  tl.to(brandEl, {
-    opacity: 0,
-    scale: 0.7,
-    filter: 'blur(8px)',
-    duration: 0.5,
-    ease: 'power2.in',
-  })
-
-  splits.forEach((split, i) => {
-    tl.to(
-      split.chars,
-      {
-        opacity: 1,
-        y: 0,
-        stagger: 0.04,
-        duration: 0.7,
-        ease: 'power3.out',
-      },
-      i === 0 ? '-=0.15' : '-=0.4',
-    )
-  })
-
-  // Hold
-  tl.to({}, { duration: 2.5 })
-
-  // ▸ Phase 3: Exit
-  tl.to(allHeroChars, {
-    opacity: 0,
-    y: -40,
-    stagger: 0.012,
-    duration: 0.5,
-    ease: 'power2.in',
-  })
-
-  // ▸ Phase 4: Keywords
+  // ▸ PHASE 2: Keywords — WEB DESIGN, AI, BRANDING
   keywordEls.forEach((kw) => {
     tl.fromTo(
       kw,
@@ -96,17 +194,32 @@ document.fonts.ready.then(() => {
     )
     tl.to({}, { duration: 1.6 })
     tl.to(kw, {
-      opacity: 0,
-      scale: 1.05,
-      filter: 'blur(18px)',
-      duration: 0.5,
-      ease: 'power2.in',
+      opacity: 0, scale: 1.05, filter: 'blur(18px)',
+      duration: 0.5, ease: 'power2.in',
     })
   })
 
-  // ▸ Phase 5: Reset
-  tl.to({}, { duration: 0.6 })
-  tl.set(brandEl, { opacity: 1, scale: 1, filter: 'blur(0px)' })
-  tl.set(brandChars, { opacity: 0, scale: 0.8 })
+  tl.to({}, { duration: 0.4 })
+
+  // ▸ PHASE 3: Grand finale — stacked ZERO / LIMIT / DESIGN
+  splits.forEach((split, i) => {
+    tl.to(split.chars, {
+      opacity: 1, y: 0,
+      stagger: 0.04, duration: 0.7, ease: 'power3.out',
+    }, i === 0 ? undefined : '-=0.4')
+  })
+
+  tl.to({}, { duration: 3 })
+
+  // Exit
+  tl.to(allHeroChars, {
+    opacity: 0, y: -40,
+    stagger: 0.012, duration: 0.5, ease: 'power2.in',
+  })
+
+  // ▸ RESET for loop
+  tl.to({}, { duration: 0.8 })
+  letters.forEach((l) => tl.set(l, { opacity: 0, scale: 0.6, filter: 'none' }))
+  words.forEach((w) => tl.set(w, { opacity: 0, scale: 0.9, filter: 'blur(10px)' }))
   tl.set(allHeroChars, { y: 50, opacity: 0 })
 })

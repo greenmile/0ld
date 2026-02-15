@@ -6,7 +6,7 @@
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ZERO LIMIT DESIGN — 0LD.in</title>
-  <meta name="description" content="ZERO LIMIT DESIGN — Web design agency pushing boundaries. 0LD.in" />
+  <meta name="description" content="ZERO LIMIT DESIGN — Web design, AI & Branding agency. 0LD.in" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Syne:wght@700;800&display=swap"
@@ -16,9 +16,26 @@
 <body>
   <div id="app">
     <div class="stage">
-      <!-- Brand abbreviation: ØLD (horizontal) -->
-      <div class="brand" id="brand">
-        <span class="brand-char">Ø</span><span class="brand-char">L</span><span class="brand-char">D</span>
+
+      <!-- Mnemonic: single letter → full word reveals -->
+      <div class="mnemonic" id="mnemonic-0">
+        <span class="mnemonic-letter">0</span>
+        <span class="mnemonic-word">ZERO</span>
+      </div>
+      <div class="mnemonic" id="mnemonic-l">
+        <span class="mnemonic-letter">L</span>
+        <span class="mnemonic-word">LIMIT</span>
+      </div>
+      <div class="mnemonic" id="mnemonic-d">
+        <span class="mnemonic-letter">D</span>
+        <span class="mnemonic-word">DESIGN</span>
+      </div>
+
+      <!-- Keywords -->
+      <div class="keywords">
+        <span class="keyword">WEB<br>DESIGN</span>
+        <span class="keyword">AI</span>
+        <span class="keyword">BRANDING</span>
       </div>
 
       <!-- Full title: stacked -->
@@ -27,15 +44,13 @@
         <div class="hero-line">LIMIT</div>
         <div class="hero-line">DESIGN</div>
       </h1>
+
     </div>
 
-    <div class="stage keyword-stage">
-      <div class="keywords" aria-hidden="true">
-        <span class="keyword">VISUAL<br>IDENTITY</span>
-        <span class="keyword">PIXEL<br>PERFECT</span>
-        <span class="keyword">FUTURE<br>PROOF</span>
-      </div>
-    </div>
+    <!-- Music toggle -->
+    <button id="music-toggle" class="music-btn" aria-label="Toggle music">
+      <span class="music-icon" id="music-icon">♪</span>
+    </button>
   </div>
   <script type="module" src="/src/main.js"></script>
 </body>
