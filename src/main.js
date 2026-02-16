@@ -46,9 +46,15 @@ function fitAllText() {
     fitText(el, available * 0.85)
   })
 
-  // Hero lines — 92% of available space
+  // Hero lines
+  // We need to ensure they fit BOTH width (0.85 of width) AND height (all 3 lines must fit)
+  const availableH = stage.clientHeight - 80 // extra padding for vertical
+  // 3 lines * 0.88 line-height = ~2.64 unit height. 
+  // We limit max font size so total height < availableH.
+  const maxFontSizeH = availableH / 2.7
+
   document.querySelectorAll('.hero-line').forEach((line) => {
-    fitText(line, available * 0.92)
+    fitText(line, available * 0.85, { max: maxFontSizeH })
   })
 
   // Keywords — 85% of available space
